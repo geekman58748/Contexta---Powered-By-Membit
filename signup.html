@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-style-mode" content="1">
+
+    <title>Sign Up || Contexta</title>
+
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/vendor/bootstrap.min.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/plugins/fontawesome-all.min.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/plugins/feature.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/plugins/animation.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/plugins/slick.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/plugins/slick-theme.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/plugins/bootstrap-select.min.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/plugins/prism.css">
+    <link rel="stylesheet" href="https://aiwave.pixcelsthemes.com/assets/css/style.css">
+</head>
+
+<body>
+    <main class="page-wrapper">
+        <div class="signup-area">
+            <div class="wrapper">
+                <div class="row">
+                    <div class="col-lg-6 bg-color-blackest left-wrapper">
+                        <div class="sign-up-box">
+                            <div class="signup-box-top">
+                                <img src="images/logo.png">
+                            </div>
+                            <div class="signup-box-bottom">
+                                <div class="signup-box-content">
+                                    <div class="text-social-area">
+                                        <hr>
+                                        <span>Sign up with your email</span>
+                                        <hr>
+                                    </div>
+                                    <form id="signupForm">
+                                        <div class="input-section mail-section">
+                                            <div class="icon"><i class="fa-sharp fa-regular fa-envelope"></i></div>
+                                            <input type="email" id="email" placeholder="Enter email address" required>
+                                        </div>
+                                        <div class="input-section password-section">
+                                            <div class="icon"><i class="fa-sharp fa-regular fa-lock"></i></div>
+                                            <input type="password" id="password" placeholder="Create Password" required>
+                                        </div>
+                                        <div class="input-section password-section">
+                                            <div class="icon"><i class="fa-sharp fa-regular fa-lock"></i></div>
+                                            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+                                        </div>
+                                        <div class="forget-text"><a class="btn-read-more" href="#"><span>Forgot password</span></a></div>
+                                        <button type="submit" class="btn-default" id="submitBtn">Sign Up</button>
+                                    </form>
+                                    <div id="errorMessage" style="display:none; margin-top:15px; color:#ff4444; text-align:center;"></div>
+                                    <div id="accessCodeContainer" style="display:none; margin-top:15px; padding:20px; background:#1a1a1a; border-radius:8px; text-align:center;">
+                                        <p style="color:#4CAF50; font-size:18px; margin-bottom:10px;">Account Created Successfully!</p>
+                                        <p style="margin-bottom:10px;">Your activation code:</p>
+                                        <div style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                                            <span id="accessCode" style="font-weight:bold; font-size:24px; color:#4CAF50; letter-spacing:2px;"></span>
+                                            <button onclick="copyCode()" class="btn-default" style="padding:8px 16px;">Copy</button>
+                                        </div>
+                                        <p style="margin-top:15px; font-size:14px; color:#888;">Use this code in Telegram with: <strong>/activate YOUR_CODE</strong></p>
+                                        <a href="https://t.me/YOUR_BOT_USERNAME" target="_blank" class="btn-default" style="margin-top:15px; display:inline-block;">Open Telegram Bot</a>
+                                    </div>
+                                </div>
+                                <div class="signup-box-footer">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Handle form submission
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const errorMessage = document.getElementById('errorMessage');
+            const accessCodeContainer = document.getElementById('accessCodeContainer');
+            
+            // Reset error message
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match!';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Validate password strength (optional)
+            if (password.length < 8) {
+                errorMessage.textContent = 'Password must be at least 8 characters long!';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Disable submit button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+            
+            try {
+                // Send signup request to n8n webhook
+                const response = await fetch('https://contexta-bot.app.n8n.cloud/webhook/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.activationCode) {
+                    // Hide form and show activation code
+                    document.getElementById('signupForm').style.display = 'none';
+                    document.getElementById('accessCode').textContent = data.activationCode;
+                    accessCodeContainer.style.display = 'block';
+                } else {
+                    // Show error message
+                    errorMessage.textContent = data.message || 'Failed to create account. Please try again.';
+                    errorMessage.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sign Up';
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                errorMessage.textContent = 'Network error. Please check your connection and try again.';
+                errorMessage.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign Up';
+            }
+        });
+        
+        // Copy activation code to clipboard
+        function copyCode() {
+            const code = document.getElementById('accessCode').textContent;
+            
+            // Use modern clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(function() {
+                    alert('Activation code copied to clipboard!');
+                }).catch(function(err) {
+                    console.error('Failed to copy:', err);
+                    fallbackCopy(code);
+                });
+            } else {
+                // Fallback for older browsers
+                fallbackCopy(code);
+            }
+        }
+        
+        // Fallback copy method for older browsers
+        function fallbackCopy(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('Activation code copied to clipboard!');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('Failed to copy. Please copy manually: ' + text);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+
+</html>
