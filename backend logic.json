@@ -1,0 +1,1201 @@
+{
+  "name": "Contexta",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "16d10a05-9da0-4b73-a501-83c1c24985b8",
+      "name": "Telegram Bot Commands",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        2368
+      ],
+      "webhookId": "e073ef91-bf5b-48b1-9a09-b0807d73ea99",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "id": "6d3a0ab1-00ab-4754-a06d-e5765f1f11c0",
+      "name": "Hourly Crypto Data Scan",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        352,
+        3616
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "membitsApiUrl",
+              "value": "https://api.membit.ai/v1",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "membitsApiKey",
+              "value": "u-Mt53GBPXiscHNcIi1Tfxu5A7H5PvBydsMFsQ1QVQF2z72TOJ",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "4bcb0077-07f8-455f-abb2-bdaaf33a718d",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-0",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/activate",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-1",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/help",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-2",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/news",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-3",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/defi",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "id": "condition-4",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "/topcoins",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2c17d3c8-b0da-4dc8-b9a0-2b058034f9a7",
+      "name": "Route Command",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        800,
+        2320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM users WHERE access_code = $1 AND telegram_chat_id IS NULL",
+        "options": {
+          "queryReplacement": "={{ $json.message.text.split(' ')[1] }}"
+        }
+      },
+      "id": "bc1d3134-d10a-4514-9b5a-9bb889369b63",
+      "name": "Check Activation Code",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1024,
+        2848
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "0piWO0BqM8E6efnM",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE users SET telegram_chat_id = $1, subscription_active = true WHERE access_code = $2",
+        "options": {
+          "queryReplacement": "={{ $('Telegram Bot Commands').item.json.message.chat.id }},={{ $json.access_code }}"
+        }
+      },
+      "id": "b27b8c5e-370b-4777-a741-0dc1fc2e6814",
+      "name": "Update User Telegram ID",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1472,
+        2752
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "0piWO0BqM8E6efnM",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Bot Commands').item.json.message.chat.id }}",
+        "text": "✅ Activation successful! Your account is now linked. You will receive hourly crypto updates and can use commands like /news, /defi, and /topcoins.",
+        "additionalFields": {}
+      },
+      "id": "c55bf031-4f1b-424b-94db-1ef6301471b6",
+      "name": "Send Activation Success",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        2752
+      ],
+      "webhookId": "356af587-e91b-49d3-9da3-a9f45c082a1e",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Bot Commands').item.json.message.chat.id }}",
+        "text": "❌ Invalid activation code or code already used. Please check your code from the dashboard and try again.",
+        "additionalFields": {}
+      },
+      "id": "c87ab1d3-c9ec-4ddf-b98b-18776a28efdc",
+      "name": "Send Activation Error",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1472,
+        2944
+      ],
+      "webhookId": "43f35e9b-b5b8-41c3-8f08-8bcf324d08e4",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "🤖 *Contexta Crypto Bot Help*\n\n*Commands:*\n/activate [code] - Activate your account with code from dashboard\n/help - Show this help message\n/news - Get trending crypto news\n/defi - Get DeFi investment tips and opportunities\n/topcoins - Get today's top trending coins\n\n*Automatic Updates:*\nYou'll receive detailed crypto summaries every hour once activated.\n\nPowered by Membits",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "570d1573-ae03-4f20-bdd3-2d15107e3689",
+      "name": "Send Help Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        1984
+      ],
+      "webhookId": "7a1fdbf7-d590-41df-b4f9-75d9e20426db",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.membit.ai/v1/clusters/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "10"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "q",
+              "value": "crytpo news"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Membit-Api-Key",
+              "value": "u-Mt53GBPXiscHNcIi1Tfxu5A7H5PvBydsMFsQ1QVQF2z72TOJ"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "459aa987-c54a-4129-8ea9-59d7c7373cb6",
+      "name": "Fetch Crypto News",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1024,
+        2176
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "VOO8GZYGzDpRLls5",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.membit.ai/v1/clusters/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "10"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "q",
+              "value": "defi news"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Membit-Api-Key",
+              "value": "u-Mt53GBPXiscHNcIi1Tfxu5A7H5PvBydsMFsQ1QVQF2z72TOJ"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 10000
+        }
+      },
+      "id": "4043100a-f590-4b79-80b8-ecc266101a9f",
+      "name": "Fetch DeFi Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1024,
+        2368
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "VOO8GZYGzDpRLls5",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.membit.ai/v1/clusters/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "10"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            },
+            {
+              "name": "q",
+              "value": "top trending coins"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Membit-Api-Key",
+              "value": "u-Mt53GBPXiscHNcIi1Tfxu5A7H5PvBydsMFsQ1QVQF2z72TOJ"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "7bc55cb6-fa06-4a3d-a319-945aa0c08200",
+      "name": "Fetch Top Coins",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1024,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); if (!items || items.length === 0) { return [{ json: { formattedMessage: '📰 No crypto news available at the moment.' } }]; } const data = items[0].json; const clusters = data.clusters || []; if (clusters.length === 0) { return [{ json: { formattedMessage: '📰 No crypto news clusters available at the moment.' } }]; } let message = '📰 *Trending Crypto News*\\n\\n'; clusters.slice(0, 10).forEach((cluster, index) => { const title = cluster.label || cluster.title || cluster.name || 'Unknown Topic'; const summary = cluster.summary || cluster.description || 'No summary available'; message += `${index + 1}. *${title}*\\n`; message += `   📝 ${summary}\\n\\n`; }); message += '\\n💡 Stay informed with the latest crypto trends!'; return [{ json: { formattedMessage: message } }];"
+      },
+      "id": "76a218f7-dee7-4e0f-9bd9-6b232c7c15b7",
+      "name": "Format News Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); if (!items || items.length === 0) { return [{ json: { formattedMessage: '⚠️ No DeFi data available at the moment.' } }]; } const data = items[0].json; const clusters = data.clusters || []; if (clusters.length === 0) { return [{ json: { formattedMessage: '⚠️ No DeFi clusters available at the moment.' } }]; } let message = '🏦 *DeFi Market Insights*\\n\\n'; clusters.slice(0, 5).forEach((cluster, index) => { const title = cluster.label || cluster.title || cluster.name || 'Unknown Topic'; const summary = cluster.summary || cluster.description || 'No summary available'; message += `${index + 1}. *${title}*\\n`; message += `   📝 ${summary}\\n\\n`; }); message += '\\n💡 *DeFi Investment Tips:*\\n'; message += '• Diversify across multiple protocols\\n'; message += '• Check smart contract audits\\n'; message += '• Consider impermanent loss risks\\n'; message += '• Start with established protocols\\n'; message += '• Monitor APY sustainability\\n\\n'; message += '⚠️ _Always DYOR (Do Your Own Research)_'; return [{ json: { formattedMessage: message } }];"
+      },
+      "id": "4816e37a-e0b4-4652-a4da-322dbf941572",
+      "name": "Format DeFi Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); if (!items || items.length === 0) { return [{ json: { formattedMessage: '❌ No data available for top coins.' } }]; } const data = items[0].json; const clusters = data.clusters || []; if (clusters.length === 0) { return [{ json: { formattedMessage: '❌ No top coins clusters available at the moment.' } }]; } let message = '🏆 *Top Cryptocurrency Topics*\\n\\n'; clusters.slice(0, 10).forEach((cluster, index) => { const title = cluster.label || cluster.title || cluster.name || 'Unknown Topic'; const summary = cluster.summary || cluster.description || 'No summary available'; message += `${index + 1}. *${title}*\\n`; message += `   📝 ${summary}\\n\\n`; }); message += '_Data powered by Membits_'; return [{ json: { formattedMessage: message } }];"
+      },
+      "id": "185174eb-c884-40fd-a8bd-521ffdde9651",
+      "name": "Format Top Coins Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        2560
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Bot Commands').item.json.message.chat.id }}",
+        "text": "={{ $json.formattedMessage }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "3b5a5d97-7669-4ef4-9914-9686dba35a94",
+      "name": "Send News Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        2176
+      ],
+      "webhookId": "d7e51f36-8f24-4a97-a020-9efe1977296b",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Bot Commands').item.json.message.chat.id }}",
+        "text": "={{ $json.formattedMessage }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "31a19262-e2ac-4759-9a61-da6a078aa215",
+      "name": "Send DeFi Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        2368
+      ],
+      "webhookId": "6f319b5d-5495-4345-8ae3-b1cf3ee6b219",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Bot Commands').item.json.message.chat.id }}",
+        "text": "={{ $json.formattedMessage }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "ba2c4b64-4c96-414c-a3f7-f99e982c0024",
+      "name": "Send Top Coins Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        2560
+      ],
+      "webhookId": "49d709ae-7115-45cf-8238-36ab252c2646",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT telegram_chat_id FROM users WHERE subscription_active = true AND telegram_chat_id IS NOT NULL",
+        "options": {}
+      },
+      "id": "24fab699-2979-4f9f-b771-c95030171630",
+      "name": "Get Active Users",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        576,
+        3616
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "0piWO0BqM8E6efnM",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/search/trending",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "5b4d6d2f-86ce-419e-8f9d-d65756c88139",
+      "name": "Fetch Hourly Crypto Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        800,
+        3616
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); if (!items || items.length === 0 || !items[0].json.coins) { return [{ json: { formattedMessage: '⚠️ No crypto data available at this time.' } }]; } const coins = items[0].json.coins.slice(0, 5); let message = '📊 *Hourly Crypto Market Summary*\\n'; message += '━━━━━━━━━━━━━━━━━━━━\\n\\n'; message += '🔥 *Trending Cryptocurrencies*\\n\\n'; coins.forEach((item, index) => { const coin = item.item; message += `${index + 1}. *${coin.name}* (${coin.symbol})\\n`; message += `   📊 Rank: #${coin.market_cap_rank || 'N/A'}\\n`; message += `   💰 Price: $${coin.data?.price || 'N/A'}\\n`; if (coin.data?.price_change_percentage_24h) { const change = coin.data.price_change_percentage_24h.usd.toFixed(2); const emoji = change > 0 ? '📈' : '📉'; message += `   ${emoji} 24h: ${change}%\\n`; } message += '\\n'; }); message += '━━━━━━━━━━━━━━━━━━━━\\n'; message += `⏰ Updated: ${new Date().toLocaleString('en-US', { timeZone: 'UTC' })} UTC\\n`; message += '\\n_Powered by CoinGecko_'; return [{ json: { formattedMessage: message } }];"
+      },
+      "id": "9f95ff6f-dd5a-404a-ac09-b2dd372f5fb9",
+      "name": "Format Hourly Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        3616
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.telegram_chat_id }}",
+        "text": "={{ $('Format Hourly Summary').first().json.formattedMessage }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "d8f7825f-b316-459e-ace0-e25d1ae765bb",
+      "name": "Send Hourly Summary to Users",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        3616
+      ],
+      "webhookId": "468f450f-7af0-4df2-8d1e-28b5b85ebfed",
+      "credentials": {
+        "telegramApi": {
+          "id": "aQLdeOFNnG6ros3u",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json && Object.keys($json).length > 0 }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a7d3c120-47d8-416a-8fca-8aa7dad375a5",
+      "name": "Check Code Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        2848
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "signup",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "e5c3e8d9-8afe-4b24-86cd-22f4e538181a",
+      "name": "Signup Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        352,
+        3168
+      ],
+      "webhookId": "d5edbd1a-2767-46c2-92fe-7bec4dcd28ae"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate a random 8-character alphanumeric activation code\nconst items = $input.all();\n\nif (!items || items.length === 0) {\n  return [{\n    json: {\n      error: 'No input data received'\n    }\n  }];\n}\n\n// Get email from webhook body\nconst email = items[0].json.body?.email || items[0].json.email;\n\nif (!email) {\n  return [{\n    json: {\n      error: 'Email is required'\n    }\n  }];\n}\n\n// Generate random 8-character alphanumeric code\nconst characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';\nlet activationCode = '';\n\nfor (let i = 0; i < 8; i++) {\n  const randomIndex = Math.floor(Math.random() * characters.length);\n  activationCode += characters[randomIndex];\n}\n\nreturn [{\n  json: {\n    email: email,\n    activationCode: activationCode\n  }\n}];"
+      },
+      "id": "2b36ea49-724a-4bf8-9109-fbfa775854ce",
+      "name": "Generate Activation Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        3168
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO users (user_email, access_code, created_at) VALUES ($1, $2, NOW()) RETURNING *",
+        "options": {
+          "queryReplacement": "={{ $json.email }},={{ $json.activationCode }}"
+        }
+      },
+      "id": "827cae44-a5df-448f-a258-b0d342cee9a3",
+      "name": "Insert New User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        800,
+        3168
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "0piWO0BqM8E6efnM",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"activationCode\": \"={{ $('Generate Activation Code').item.json.activationCode }}\",\n  \"message\": \"Account created successfully\"\n}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, GET, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "e79f8af1-0b08-495d-9176-c0deb639b727",
+      "name": "Return Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1024,
+        3168
+      ]
+    },
+    {
+      "parameters": {
+        "path": "dashboard",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "1abdd82b-9f00-455f-88ab-ecb30e9ea64a",
+      "name": "Dashboard Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        352,
+        3392
+      ],
+      "webhookId": "7bb1d87e-9057-444f-8949-dc24a57f7d49"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT user_email, access_code, telegram_chat_id, subscription_active, subscription_expires_at, created_at FROM users WHERE user_email = $1",
+        "options": {
+          "queryReplacement": "={{ $json.query.email }}"
+        }
+      },
+      "id": "5944cfd3-4d8d-4ee0-88e8-5c64ff23d9b6",
+      "name": "Get User Data",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        576,
+        3392
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "0piWO0BqM8E6efnM",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $('Get User Data').item.json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, GET, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "fcb7ce7b-72c7-4d3e-9d49-772b73e57fc1",
+      "name": "Return Dashboard Data",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        3392
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); if (!items || items.length === 0) { return [{ json: { clusters: [] } }]; } const data = items[0].json; return [{ json: { clusters: data.clusters || data.results || data.data || data.items || [] } }];"
+      },
+      "id": "8278aab2-9d01-425c-b041-09dec55462ef",
+      "name": "Normalize Membits Response - News",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); if (!items || items.length === 0) { return [{ json: { clusters: [] } }]; } const data = items[0].json; return [{ json: { clusters: data.clusters || data.results || data.data || data.items || [] } }];"
+      },
+      "id": "d9309f2c-e1fa-4430-99e5-f286e0d262bc",
+      "name": "Normalize Membits Response - DeFi",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        2368
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all(); if (!items || items.length === 0) { return [{ json: { clusters: [] } }]; } const data = items[0].json; return [{ json: { clusters: data.clusters || data.results || data.data || data.items || [] } }];"
+      },
+      "id": "c7b183d1-3ed2-4392-8377-f99147ecd917",
+      "name": "Normalize Membits Response - TopCoins",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        2560
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Bot Commands": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Route Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Command": {
+      "main": [
+        [
+          {
+            "node": "Check Activation Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Help Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Crypto News",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch DeFi Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Top Coins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Activation Code": {
+      "main": [
+        [
+          {
+            "node": "Check Code Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Code Valid": {
+      "main": [
+        [
+          {
+            "node": "Update User Telegram ID",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Activation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update User Telegram ID": {
+      "main": [
+        [
+          {
+            "node": "Send Activation Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format News Summary": {
+      "main": [
+        [
+          {
+            "node": "Send News Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format DeFi Summary": {
+      "main": [
+        [
+          {
+            "node": "Send DeFi Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Top Coins Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Top Coins Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hourly Crypto Data Scan": {
+      "main": [
+        [
+          {
+            "node": "Get Active Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Users": {
+      "main": [
+        [
+          {
+            "node": "Fetch Hourly Crypto Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Hourly Crypto Summary": {
+      "main": [
+        [
+          {
+            "node": "Format Hourly Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Hourly Summary": {
+      "main": [
+        [
+          {
+            "node": "Send Hourly Summary to Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signup Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate Activation Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Activation Code": {
+      "main": [
+        [
+          {
+            "node": "Insert New User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert New User": {
+      "main": [
+        [
+          {
+            "node": "Return Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dashboard Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get User Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Data": {
+      "main": [
+        [
+          {
+            "node": "Return Dashboard Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Crypto News": {
+      "main": [
+        [
+          {
+            "node": "Normalize Membits Response - News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch DeFi Data": {
+      "main": [
+        [
+          {
+            "node": "Normalize Membits Response - DeFi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Top Coins": {
+      "main": [
+        [
+          {
+            "node": "Normalize Membits Response - TopCoins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Membits Response - News": {
+      "main": [
+        [
+          {
+            "node": "Format News Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Membits Response - DeFi": {
+      "main": [
+        [
+          {
+            "node": "Format DeFi Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Membits Response - TopCoins": {
+      "main": [
+        [
+          {
+            "node": "Format Top Coins Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "51cbf111-e755-40d0-bd33-6c2a5182bdf2",
+  "meta": {
+    "instanceId": "08ce35c7dcfc295d0de89eb181533e339525a2321831b130a37b68e935417377"
+  },
+  "id": "GKUGc0mVzrNghdjv",
+  "tags": []
+}
