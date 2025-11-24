@@ -1,0 +1,98 @@
+# Contexta / Membit Integration with n8n
+
+If you landed here thinking you could just copy the documentation from Membit’s website and have it work… stop. That documentation is **incomplete, and in some cases restricted** to specific developer accounts or beta programs. Most of the methods listed there simply do not work unless you’re running a very specific program. I wasted hours sifting through dead links, outdated guides, and broken examples just to figure out a usable path.  
+
+Here’s the reality: the official MCP (Model Context Protocol) workflow is fancy, it’s shiny, but unless you’re in that beta/dev program, you can’t touch it. You *can*, however, integrate Membit with your products on a **less complex, fully functional scale** using their REST API and n8n.  
+
+This is how I did it.
+---
+
+## Approach We’re Using
+
+We are **not using MCP** in this workflow. Instead, we rely on **direct REST API calls** using HTTP Request nodes in n8n.
+
+### REST API vs MCP
+
+**REST API (Our Approach):**
+
+- Direct HTTP calls to Membit endpoints (`https://api.membit.ai/v1/clusters/search`)  
+- Simple request → response pattern  
+- No AI agent required  
+- Fully under your control  
+
+**MCP (Model Context Protocol – Official, Not Used Here):**
+
+- Protocol designed for AI agents (ChatGPT, Claude, etc.) to access external tools  
+- Requires an MCP server running that the AI can connect to  
+- AI decides when/how to call tools  
+- Restricted access; mostly for beta/developer accounts  
+
+We bypass MCP entirely, giving a simpler, more reliable solution.
+
+---
+
+## Authentication – Header Auth
+
+This is where most workflows fail. Membit **requires header-based authentication**. If the API key is wrong or the header is misconfigured, your workflow will appear alive but return **no data**.  
+
+**Rules for REST API Auth:**
+use an header auth node and create credentials, add your membit api key and name.
+
+1. Use an **HTTP Request node** in n8n  
+2. Method: GET or POST depending on endpoint  
+3. URL example: `https://api.membit.ai/v1/clusters/search?q=crypto&limit=10&format=json`  
+4. **Headers:**  Key: X-Membit-Api-Key Value: <your_api_key_here>
+
+
+5. Make sure your API key is valid — expired or miscopied keys will cause zero feedback  
+6. Do not try to authenticate in the body or URL — Membit only accepts the `X-Membit-Api-Key` header  
+
+---
+
+## Example HTTP Request Node Configuration in n8n
+
+- **Method:** GET  
+- **URL:** `https://api.membit.ai/v1/clusters/search?q=crypto&limit=10&format=json`  
+- **Headers:**  
+  - `X-Membit-Api-Key` → `YOUR_KEY_HERE`  
+- **Response Format:** JSON  
+- **Authentication:** None (handled via header key)
+
+This setup reliably returns data, unlike MCP examples which expect an AI agent to manage the request.  
+
+---
+
+## Why Header Auth is Important
+
+If you do anything else — pass API key in query params, body, or as a different header — Membit will return a `401` or an empty result. The workflow will look “alive” but you’ll get nothing.  
+
+Header auth ensures:
+
+- Security: Your key isn’t exposed in URLs or logs  
+- Consistency: Every request is authorized the same way  
+- Compatibility: Works with n8n HTTP nodes and most other no-code tools  
+
+Remember: **X-Membit-Api-Key is the only valid header name for auth**. No variations, no capitalization tweaks, no “Authorization: Bearer” nonsense.
+
+---
+
+## Summary
+
+- You can integrate Membit directly using the REST API  
+- Use HTTP Request nodes in n8n with **header-based API key authentication**  
+- Keep your API key correct and secure  
+- Avoid MCP unless you have beta/dev access — it’s not necessary for real-time data workflows  
+
+This method gives you **full control**, **reliable responses**, and is fully reproducible.  
+
+Once you set this up, you can:
+
+- Query trending clusters  
+- Build automated alerts  
+- Pipe data into Telegram, Slack, or your own dashboards  
+- Do all this without relying on MCP or any AI agent  
+
+This is the approach I used to finally get Membit working end-to-end in n8n. It’s simple, fast, and actually works.
+
+
+
